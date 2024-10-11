@@ -51,6 +51,10 @@ jobs:
       run: |
         gcloud auth configure-docker
 
+    - name: Check Active Account
+      run: |
+        gcloud auth list
+
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy project-gcp \
