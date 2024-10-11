@@ -23,7 +23,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/project-gcp:latest .
+        docker build -t ${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest .
 
     - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
@@ -41,13 +41,25 @@ jobs:
 
     - name: Tag and Push Docker Image to GCR
       run: |
-        docker tag ${{ secrets.DOCKERHUB_USERNAME }}/project-gcp:latest gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
+        docker tag ${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
         docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
 
-    - name: Deploy to Cloud Run
+    - name: SSH into Compute Engine and deploy container
       run: |
-        gcloud run deploy project-gcp \
-          --image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest \
-          --platform=managed \
-          --region=asia-southeast2\
-          --allow-unauthenticated
+        sudo apt-get install sshpass
+        
+        sshpass -p ${{ secrets.GCE_VM_PASSWORD }} ssh -o StrictHostKeyChecking=no ${{ secrets.GCE_VM_USERNAME }}@${{ secrets.GCE_VM_IP }} <<EOF
+          docker pull gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
+          docker stop project-gcp || true
+          docker rm project-gcp || true
+          docker run -d --name project-gcp -p 8080:8080 gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
+        EOF
+
+    # - name: Deploy to Cloud Run
+    #   run: |
+    #     gcloud run deploy project-gcp \
+    #       --image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest \
+    #       --platform=managed \
+    #       --region=asia-southeast2\
+    #       --allow-unauthenticated
+
