@@ -49,7 +49,7 @@ jobs:
 
     - name: Authenticate Docker to Google Container Registry
       run: |
-        echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" | gcloud auth activate-service-account --key-file=-
+        echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > key.json | gcloud auth activate-service-account --key-file=key.json
         gcloud auth configure-docker
 
     - name: Deploy to Cloud Run
