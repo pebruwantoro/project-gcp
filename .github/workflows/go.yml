@@ -10,7 +10,6 @@ on:
 jobs:
   deploy:
     name: Build, and Deploy to GCP
-    needs: build
     runs-on: ubuntu-latest
 
     steps:
