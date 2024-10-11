@@ -44,10 +44,13 @@ jobs:
         docker tag ${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
         docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
 
+    - name: Install sshpass
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y sshpass
+
     - name: SSH into Compute Engine and deploy container
       run: |
-        sudo apt-get install sshpass
-        
         sshpass -p ${{ secrets.GCE_VM_PASSWORD }} ssh -o StrictHostKeyChecking=no ${{ secrets.GCE_VM_USERNAME }}@${{ secrets.GCE_VM_IP }} <<EOF
           docker pull gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
           docker stop project-gcp || true
