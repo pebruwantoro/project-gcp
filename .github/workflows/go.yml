@@ -49,7 +49,9 @@ jobs:
 
     - name: Authenticate Docker to Google Container Registry
       run: |
-        echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > key.json
+        cat <<EOL > key.json
+        ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        EOL
         gcloud auth activate-service-account --key-file=key.json
         gcloud auth configure-docker
 
