@@ -1,7 +1,7 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: Build, Push to Docker Hub, and Deploy to GCP
+name: Build, Push, and Deploy to GCP
 
 on:
   push:
@@ -25,10 +25,12 @@ jobs:
       run: |
         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/project-gcp:latest .
 
-    - name: Tag and Push Docker Image to GCR
+    - name: Login to Docker Hub
+      run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+    - name: Push Docker image to Docker Hub
       run: |
-        docker tag ${{ secrets.DOCKERHUB_USERNAME }}/project-gcp:latest gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
-        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/project-gcp:latest
 
   deploy:
     name: Deploy to GCP Cloud Run
@@ -47,16 +49,19 @@ jobs:
 
     - name: Authenticate Docker to Google Container Registry
       run: |
-        cat <<EOL > key.json
-        ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-        EOL
+        echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > key.json
         gcloud auth activate-service-account --key-file=key.json
-        gcloud auth configure-docker
+        gcloud auth configure-docker --quiet
+
+    - name: Tag and Push Docker Image to GCR
+      run: |
+        docker tag ${{ secrets.DOCKERHUB_USERNAME }}/project-gcp:latest gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
+        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
 
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy project-gcp \
           --image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest \
           --platform=managed \
-          --region=southeastasia\
+          --region=southeastasia \
           --allow-unauthenticated
