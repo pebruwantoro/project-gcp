@@ -14,7 +14,11 @@ FROM alpine:latest
 
 WORKDIR /root/
 
-COPY .env.example ./.env
+# Accept build arguments
+ARG PORT
+ARG VERSION
+
+RUN echo "PORT=${PORT}" > .env && echo "VERSION=${VERSION}" >> .env
 
 COPY --from=build /app/server .
 
