@@ -25,12 +25,21 @@ jobs:
       run: |
         docker build --build-arg PORT=${{ secrets.PORT }} --build-arg VERSION=${{ secrets.VERSION }} -t ${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest .
 
-    - name: Tag and Push Docker Image to GCR
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+    - name: Create key.json File
       run: |
         cat <<EOL > key.json
         ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         EOL
         cat key.json
+
+    - name: Tag and Push Docker Image to GCR
+      run: |
         gcloud auth activate-service-account --key-file=key.json
         gcloud auth configure-docker
         docker tag ${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
