@@ -31,16 +31,6 @@ jobs:
         service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-    - name: Install Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y sshpass
-        echo "Updating package list and installing Docker..."
-        sudo apt-get install -y docker.io
-        echo "Starting Docker service..."
-        sudo systemctl start docker
-        sudo systemctl enable docker
-
     - name: Create key.json File
       run: |
         cat <<EOL > key.json
@@ -57,6 +47,12 @@ jobs:
       run: |
         docker tag ${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
         docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
+
+    - name: Install sshpass
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y sshpass
+        echo "Updating package list and installing Docker..."
 
     - name: SSH into Compute Engine and deploy container
       run: |
