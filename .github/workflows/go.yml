@@ -59,6 +59,12 @@ jobs:
         echo "${{ secrets.GCE_VM_PASSWORD }}" > /tmp/id_rsa
         chmod 600 /tmp/id_rsa
         ssh -i /tmp/id_rsa -o StrictHostKeyChecking=no "${{ secrets.GCE_VM_USERNAME }}@${{ secrets.GCE_VM_IP }}" <<EOF
+          echo "Updating package list and installing Docker..."
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          echo "Starting Docker service..."
+          sudo systemctl start docker
+          sudo systemctl enable docker
           echo "Pulling the latest Docker image..."
           docker pull gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
           echo "Stopping and removing old container..."
