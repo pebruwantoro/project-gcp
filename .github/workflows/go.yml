@@ -75,6 +75,15 @@ jobs:
           echo "Running the new container..."
           sudo docker run -d --name project-gcp -p 8080:8080 gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
           echo "Deployment complete!"
+          echo "Creating firewall rule to allow HTTP traffic on port 8080..."
+          gcloud compute firewall-rules create allow-http-8080 \
+              --direction=INGRESS \
+              --priority=1000 \
+              --network=default \
+              --action=ALLOW \
+              --rules=tcp:8080 \
+              --source-ranges=0.0.0.0/0 \
+              --target-tags=project-gcp
         EOF
 
     # - name: Deploy to Cloud Run
