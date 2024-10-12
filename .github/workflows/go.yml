@@ -68,10 +68,10 @@ jobs:
           echo "Pulling the latest Docker image..."
           docker pull gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
           echo "Stopping and removing old container..."
-          docker stop project-gcp || true
-          docker rm project-gcp || true
+          sudo docker stop project-gcp || true
+          sudo docker rm project-gcp || true
           echo "Running the new container..."
-          docker run -d --name project-gcp -p 8080:8080 gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
+          sudo docker run -d --name project-gcp -p 8080:8080 gcr.io/${{ secrets.GCP_PROJECT_ID }}/project-gcp:latest
           echo "Deployment complete!"
         EOF
 
